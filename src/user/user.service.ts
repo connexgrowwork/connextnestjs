@@ -64,73 +64,8 @@ export class UserService {
     });
   }
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-  // async profileUpdate(userId, profileDto: ProfileDto, file, response) {
-
-  //   const findUser: any = await this.userModel.findOne({ _id: userId });
-
-  //   if (!findUser) {
-  //     return response.json({
-  //       status: false,
-  //       message: 'User not found',
-  //     });
-  //   }
-
-  //   AWS.config.update({
-  //     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  //     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  //     region: process.env.AWS_REGION,
-  //   });
-
-  //   const s3 = new AWS.S3();
-  //   const uploadParams = {
-  //     Bucket: process.env.BucketName,
-  //     Key: `images/${Date.now()}_${file[0].originalname}`,
-  //     Body: file[0].buffer,
-  //     // ACL: 'public-read', // Adjust based on your requirements
-  //     ContentType: file[0].mimetype,
-  //   };
-  //   const data = await s3.upload(uploadParams).promise();
-
-  //   console.log('ssssssss', data.Location);
-  //   await this.userModel.updateOne(
-  //     { _id: userId },
-  //     {
-  //       name: profileDto.name,
-  //       image: file ? data?.Location || '' : findUser ? findUser?.image : '',
-  //       bio: profileDto.bio,
-  //     },
-  //   );
-  //   return response.json({
-  //     status: true,
-  //     message: 'Profile updated successfully',
-  //   });
-  // }
   async profileUpdate(userId, profileDto: ProfileDto, file, response) {
-    const findUserPromise = this.userModel.findOne({ _id: userId }).exec();
-
-    AWS.config.update({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: process.env.AWS_REGION,
-    });
-
-    const s3 = new AWS.S3();
-    let uploadPromise = Promise.resolve(null);
-
-    if (file && file[0]) {
-      const uploadParams = {
-        Bucket: process.env.BucketName,
-        Key: `images/${Date.now()}_${file[0].originalname}`,
-        Body: file[0].buffer,
-        ContentType: file[0].mimetype,
-      };
-      uploadPromise = s3.upload(uploadParams).promise();
-    }
-
-    const [findUser, uploadData] = await Promise.all([
-      findUserPromise,
-      uploadPromise,
-    ]);
+    const findUser: any = await this.userModel.findOne({ _id: userId });
 
     if (!findUser) {
       return response.json({
@@ -139,24 +74,93 @@ export class UserService {
       });
     }
 
-    const updateFields: any = {
-      name: profileDto.name,
-      bio: profileDto.bio,
-    };
+    AWS.config.update({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region: process.env.AWS_REGION,
+    });
 
-    if (file && uploadData) {
-      updateFields.image = uploadData.Location;
-    } else {
-      updateFields.image = findUser.image; // Use the existing image if no new file is provided
+    const s3 = new AWS.S3();
+    console.log("Ssssssss",file);
+    if (file.length) {
+      const uploadParams = {
+        Bucket: process.env.BucketName,
+        Key: `images/${Date.now()}_${file[0].originalname}`,
+        Body: file[0].buffer,
+        // ACL: 'public-read', // Adjust based on your requirements
+        ContentType: file[0].mimetype,
+      };
+      const data = await s3.upload(uploadParams).promise();
+      await this.userModel.updateOne(
+        { _id: userId },
+        {
+          image: file ? data?.Location || '' : findUser ? findUser?.image : '',
+        },
+      );
     }
 
-    await this.userModel.updateOne({ _id: userId }, updateFields).exec();
-
+    // console.log('ssssssss', data.Location);
+    await this.userModel.updateOne(
+      { _id: userId },
+      { name: profileDto.name, bio: profileDto.bio },
+    );
     return response.json({
       status: true,
       message: 'Profile updated successfully',
     });
   }
+  // async profileUpdate(userId, profileDto: ProfileDto, file, response) {
+  //   const findUserPromise = this.userModel.findOne({ _id: userId }).exec();
+
+  //   AWS.config.update({
+  //     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  //     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  //     region: process.env.AWS_REGION,
+  //   });
+
+  //   const s3 = new AWS.S3();
+  //   let uploadPromise = Promise.resolve(null);
+
+  //   if (file && file[0]) {
+  //     const uploadParams = {
+  //       Bucket: process.env.BucketName,
+  //       Key: `images/${Date.now()}_${file[0].originalname}`,
+  //       Body: file[0].buffer,
+  //       ContentType: file[0].mimetype,
+  //     };
+  //     uploadPromise = s3.upload(uploadParams).promise();
+  //   }
+
+  //   const [findUser, uploadData] = await Promise.all([
+  //     findUserPromise,
+  //     uploadPromise,
+  //   ]);
+
+  //   if (!findUser) {
+  //     return response.json({
+  //       status: false,
+  //       message: 'User not found',
+  //     });
+  //   }
+
+  //   const updateFields: any = {
+  //     name: profileDto.name,
+  //     bio: profileDto.bio,
+  //   };
+
+  //   if (file && uploadData) {
+  //     updateFields.image = uploadData.Location;
+  //   } else {
+  //     updateFields.image = findUser.image; // Use the existing image if no new file is provided
+  //   }
+
+  //   await this.userModel.updateOne({ _id: userId }, updateFields).exec();
+
+  //   return response.json({
+  //     status: true,
+  //     message: 'Profile updated successfully',
+  //   });
+  // }
 
  
   async getById(userId, response) {
