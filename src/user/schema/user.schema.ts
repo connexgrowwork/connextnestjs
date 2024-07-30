@@ -10,14 +10,17 @@ export type UserDocument = User & Document;
   timestamps: true,
 })
 export class User {
-  @Prop({ required: true, unique: true })
+  @Prop()
   username: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop() 
   email: string;
 
-  @Prop({ required: true })
+  @Prop()
   password: string;
+
+  @Prop()
+  bio: string;
 
   @Prop()
   profilePicture?: string;
@@ -33,3 +36,4 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+ 
