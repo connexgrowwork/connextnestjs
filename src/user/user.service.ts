@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, ProfileDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schema/user.schema';
@@ -61,9 +61,32 @@ export class UserService {
       message: 'Login successful',
     });
   }
+  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  async profileUpdate(userId, profileDto: ProfileDto, file, response) {
+    // console.log('profileDto', profileDto);
+    // console.log('dddddd', file);
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+    const findUser: any = await this.userModel.findOne({ _id: userId });
+
+    if (!findUser) {
+      return response.json({
+        status: false,
+        message: 'User not found',
+      });
+    }
+
+    await this.userModel.updateOne(
+      { _id: userId },
+      {
+        name: profileDto.name,
+        image: file ? file?.path : findUser ? findUser?.image : '',
+        bio: profileDto.bio,
+      },
+    );
+    return response.json({
+      status: true,
+      message: 'Profile updated successfully',
+    });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

@@ -13,7 +13,7 @@ export class User {
   @Prop()
   username: string;
 
-  @Prop() 
+  @Prop()
   email: string;
 
   @Prop()
@@ -21,6 +21,9 @@ export class User {
 
   @Prop()
   bio: string;
+
+  @Prop()
+  image: string;
 
   @Prop()
   profilePicture?: string;
@@ -36,4 +39,3 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
- 

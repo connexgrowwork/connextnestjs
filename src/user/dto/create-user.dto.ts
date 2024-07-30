@@ -28,3 +28,19 @@ export class LoginUserDto {
   @IsOptional()
   password: string;
 }
+export class ProfileDto {
+  @ApiProperty()
+  @IsOptional()
+  name: string;
+
+  @ApiProperty()
+  @IsOptional()
+  bio: string;
+
+  @ApiProperty({ type: 'string', format: 'binary', required: false })
+  image: Express.Multer.File;
+
+//   @ApiProperty({ type: 'string', format: 'binary', required: false })
+//   file: Express.Multer.File
+}
+ 
