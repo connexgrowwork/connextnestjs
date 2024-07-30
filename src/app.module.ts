@@ -10,14 +10,14 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const mongoUri = process.env.MONGODB_URI;
-if (!mongoUri) {
-  throw new Error('MONGODB_URI is not defined in the environment variables');
-}
+// const mongoUri = process.env.MONGODB_URI;
+// if (!mongoUri) {
+//   throw new Error('MONGODB_URI is not defined in the environment variables');
+// }
 
 @Module({
   imports: [   
-    MongooseModule.forRoot(mongoUri, {}),
+    MongooseModule.forRoot('mongodb+srv://connexgrow:Connex%401234@cluster0.mppg7du.mongodb.net/connexgrow', {}),
 
     UserModule,
     PostModule,
