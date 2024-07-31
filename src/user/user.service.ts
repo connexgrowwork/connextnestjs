@@ -181,7 +181,7 @@ export class UserService {
       },
     ]);
 
-    if (result.length === 0) {
+    if (result.length === 0) {  
       return response.json({
         status: false,
         message: 'User not found',

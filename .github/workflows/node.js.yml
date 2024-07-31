@@ -27,4 +27,4 @@ jobs:
     - run: npm ci
     - run: |
         touch .env
-        echo "${{ secrets.MONGODB_URI }}" > .env
+        echo "${{ secrets.DEV_ENV }}" > .env
