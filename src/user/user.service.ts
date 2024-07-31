@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto, ProfileDto } from './dto/create-user.dto';
+import {
+  CreateUserDto,
+  ProfileDto,
+  SocialSignupLoginDto,
+} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schema/user.schema';
-import { Model ,Types} from 'mongoose';
-import * as bcrypt from 'bcryptjs';
+import { Model, Types } from 'mongoose';
+import * as bcrypt from 'bcryptjs'; 
 const AWS = require('aws-sdk');
 // import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
@@ -15,34 +19,38 @@ export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async create(createUserDto: CreateUserDto, response) {
-    const { email, password } = createUserDto;
+    const { email, bio, name, socialId } = createUserDto;
 
-    const existingUser = await this.userModel.findOne({ email });
-    if (existingUser) {
+    const existingUser: any = await this.userModel.findOne({
+      socialId: socialId,
+    });
+    if (!existingUser) {
       return response.json({
         status: false,
-        message: 'User already exists',
+        message: 'Invalid user',
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await this.userModel.create({
-      ...createUserDto,
-      password: hashedPassword,
-    });
+    await this.userModel.updateOne(
+      { socialId: socialId },
+      {
+        email: email,
+        bio: bio,
+        username: name,
+      },
+    );
 
     return response.json({
       status: true,
-      message: 'User created successfully',
-      userId: newUser.id,
+      message: 'User registered successfully',
+      userId: existingUser.id,
     });
   }
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async loginFun(loginUserDto, response) {
     const { email, password } = loginUserDto;
     // Check if the email exists
-    const user = await this.userModel.findOne({ email });
+    const user: any = await this.userModel.findOne({ email });
     if (!user) {
       return response.json({
         status: false,
@@ -57,11 +65,49 @@ export class UserService {
         message: 'Invalid credentials',
       });
     }
+
+    const updateToken = await this.userModel.updateOne(
+      { _id: user._id },
+      { device_token: loginUserDto.deviceToken },
+    );
     return response.json({
       status: true,
       userId: user._id,
       message: 'Login successful',
     });
+  }
+  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  async socialLoginSignup(socialLoginDto: SocialSignupLoginDto, response) {
+    const { socialId, deviceToken } = socialLoginDto;
+    if (!socialId) {
+      return response.json({
+        status: false,
+        message: 'Social ID is required',
+      });
+    }
+
+    let user: any = await this.userModel.findOne({ socialId: socialId });
+    if (user) {
+      return response.json({
+        status: true,
+        userId: user.id,
+        isNew: user.isNew,
+      });
+      // return { userId: user.id };
+    } else {
+      // User not found, create a new account
+      user = await this.userModel.create({
+        socialId: socialId,
+        device_token: deviceToken,
+      });
+
+      return response.json({
+        status: true,
+        userId: user.id,
+        isNew: user.isNew,
+        socialId: socialId,
+      }); 
+    }
   }
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async profileUpdate(userId, profileDto: ProfileDto, file, response) {
@@ -81,7 +127,7 @@ export class UserService {
     });
 
     const s3 = new AWS.S3();
-    console.log("Ssssssss",file);
+    console.log('Ssssssss', file); 
     if (file.length) {
       const uploadParams = {
         Bucket: process.env.BucketName,
@@ -109,63 +155,8 @@ export class UserService {
       message: 'Profile updated successfully',
     });
   }
-  // async profileUpdate(userId, profileDto: ProfileDto, file, response) {
-  //   const findUserPromise = this.userModel.findOne({ _id: userId }).exec();
-
-  //   AWS.config.update({
-  //     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  //     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  //     region: process.env.AWS_REGION,
-  //   });
-
-  //   const s3 = new AWS.S3();
-  //   let uploadPromise = Promise.resolve(null);
-
-  //   if (file && file[0]) {
-  //     const uploadParams = {
-  //       Bucket: process.env.BucketName,
-  //       Key: `images/${Date.now()}_${file[0].originalname}`,
-  //       Body: file[0].buffer,
-  //       ContentType: file[0].mimetype,
-  //     };
-  //     uploadPromise = s3.upload(uploadParams).promise();
-  //   }
-
-  //   const [findUser, uploadData] = await Promise.all([
-  //     findUserPromise,
-  //     uploadPromise,
-  //   ]);
-
-  //   if (!findUser) {
-  //     return response.json({
-  //       status: false,
-  //       message: 'User not found',
-  //     });
-  //   }
-
-  //   const updateFields: any = {
-  //     name: profileDto.name,
-  //     bio: profileDto.bio,
-  //   };
-
-  //   if (file && uploadData) {
-  //     updateFields.image = uploadData.Location;
-  //   } else {
-  //     updateFields.image = findUser.image; // Use the existing image if no new file is provided
-  //   }
-
-  //   await this.userModel.updateOne({ _id: userId }, updateFields).exec();
-
-  //   return response.json({
-  //     status: true,
-  //     message: 'Profile updated successfully',
-  //   });
-  // }
- 
- 
+  //  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async getById(userId, response) {
-    // const objectId = new Types.ObjectId(userId);
-
     const result = await this.userModel.aggregate([
       { $match: { _id: new Types.ObjectId(userId) } },
       {
@@ -181,7 +172,7 @@ export class UserService {
       },
     ]);
 
-    if (result.length === 0) {  
+    if (result.length === 0) {
       return response.json({
         status: false,
         message: 'User not found',
@@ -193,5 +184,4 @@ export class UserService {
       data: result,
     });
   }
-
 }

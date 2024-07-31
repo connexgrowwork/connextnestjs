@@ -20,19 +20,25 @@ export class User {
   password: string;
 
   @Prop()
+  socialId: string;
+
+  @Prop({ default: 0 })
+  isNew: number;
+
+  @Prop()
+  device_token: string;
+
+  @Prop()
   bio: string;
 
   @Prop()
   image: string;
 
-  @Prop()
-  profilePicture?: string;
+  @Prop({ default: [] })
+  followers: string[]; // Array of User IDs
 
   @Prop({ default: [] })
-  followers: string[];
-
-  @Prop({ default: [] })
-  following: string[];
+  following: string[]; // Array of User IDs
 
   @Prop({ default: [] })
   posts: string[]; // Array of Post IDs

@@ -13,7 +13,7 @@ import {
   UploadedFiles,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, LoginUserDto, ProfileDto } from './dto/create-user.dto';
+import { CreateUserDto, LoginUserDto, ProfileDto, SocialSignupLoginDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
@@ -29,10 +29,17 @@ export class UserController {
   create(@Body() createUserDto: CreateUserDto, @Response() response) {
     return this.userService.create(createUserDto, response);
   }
-
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   @Post('login')
   loginFun(@Body() loginUserDto: LoginUserDto, @Response() response) {
     return this.userService.loginFun(loginUserDto, response);
+  }
+
+  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  
+  @Post('social-login-signup')
+  socialLoginSignup(@Body() socialLoginDto: SocialSignupLoginDto, @Response() response) {
+    return this.userService.socialLoginSignup(socialLoginDto, response);
   }
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   @Post('profile-update/:userId')
@@ -51,8 +58,8 @@ export class UserController {
   ) {
     return this.userService.profileUpdate(userId, profileDto, files, response);
   }
-
-  //
+ 
+  //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
   @Get('get-user-data-by-id/:userId')
   getById(@Param('userId') userId: string, @Response() response) {

@@ -13,7 +13,7 @@ export class CreateUserDto {
 
   @ApiProperty()
   @IsOptional()
-  password: string;
+  socialId: string;
 
   @ApiProperty()
   @IsOptional()
@@ -23,6 +23,10 @@ export class LoginUserDto {
   @ApiProperty()
   @IsOptional()
   email: string;
+
+  @ApiProperty()
+  @IsOptional()
+  deviceToken: string;
 
   @ApiProperty()
   @IsOptional()
@@ -43,4 +47,16 @@ export class ProfileDto {
 //   @ApiProperty({ type: 'string', format: 'binary', required: false })
 //   file: Express.Multer.File
 }
- 
+export class SocialSignupLoginDto {
+  @ApiProperty()
+  @IsOptional()
+  socialId: string;
+
+  @ApiProperty()
+  @IsOptional()
+  deviceToken: string;
+
+  // @ApiProperty()
+  // @IsOptional()
+  // name: string;
+}
