@@ -13,6 +13,10 @@ export class CreateUserDto {
 
   @ApiProperty()
   @IsOptional()
+  designation: string;
+
+  @ApiProperty()
+  @IsOptional()
   socialId: string;
 
   @ApiProperty()

@@ -1,34 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+/* eslint-disable prettier/prettier */
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Response,
+  UseInterceptors,
+  UploadedFiles,
+} from '@nestjs/common';
 import { PostService } from './post.service';
-import { CreatePostDto } from './dto/create-post.dto';
+import { CreatePostDto, PostListDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { memoryStorage } from 'multer';
 
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @Post()
-  create(@Body() createPostDto: CreatePostDto) {
-    return this.postService.create(createPostDto);
+  @Post('create')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    AnyFilesInterceptor({
+      storage: memoryStorage(),
+    }),
+  )
+  @ApiBody({ type: CreatePostDto })
+  create(
+    @Body() createPostDto: CreatePostDto,
+    @UploadedFiles() files,
+    @Response() response,
+  ) {
+    return this.postService.create(createPostDto, files, response);
   }
 
-  @Get()
-  findAll() {
-    return this.postService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(+id, updatePostDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postService.remove(+id);
+  @Post('all-post-list/:userId')
+  getAllPostList(
+    @Param('userId') userId: string,
+    @Body() postListDto: PostListDto,
+    @Response() response,
+  ) {
+    return this.postService.getAllPostList(userId, postListDto, response);
   }
 }

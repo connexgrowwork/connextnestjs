@@ -10,7 +10,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schema/user.schema';
 import { Model, Types } from 'mongoose';
-import * as bcrypt from 'bcryptjs'; 
+import * as bcrypt from 'bcryptjs';
 const AWS = require('aws-sdk');
 // import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
@@ -19,7 +19,7 @@ export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async create(createUserDto: CreateUserDto, response) {
-    const { email, bio, name, socialId } = createUserDto;
+    const { email, bio, name, socialId, designation } = createUserDto;
 
     const existingUser: any = await this.userModel.findOne({
       socialId: socialId,
@@ -37,6 +37,7 @@ export class UserService {
         email: email,
         bio: bio,
         username: name,
+        designation: designation,
       },
     );
 
@@ -106,7 +107,7 @@ export class UserService {
         userId: user.id,
         isNew: user.isNew,
         socialId: socialId,
-      }); 
+      });
     }
   }
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -127,7 +128,7 @@ export class UserService {
     });
 
     const s3 = new AWS.S3();
-    console.log('Ssssssss', file); 
+    console.log('Ssssssss', file);
     if (file.length) {
       const uploadParams = {
         Bucket: process.env.BucketName,

@@ -29,6 +29,9 @@ export class User {
   device_token: string;
 
   @Prop()
+  designation: string;
+
+  @Prop()
   bio: string;
 
   @Prop()
