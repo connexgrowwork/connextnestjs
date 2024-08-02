@@ -64,3 +64,22 @@ export class SocialSignupLoginDto {
   // @IsOptional()
   // name: string;
 }
+
+export class FollowDTO {
+  @ApiProperty()
+  @IsNotEmpty()
+  userId: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  following: string;
+}
+export class UnFollowDTO {
+  @ApiProperty()
+  @IsNotEmpty()
+  userId: string;
+   
+  @ApiProperty()
+  @IsNotEmpty()
+  unFollowUserId: string;
+}

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   CreateUserDto,
   ProfileDto,
@@ -184,5 +184,121 @@ export class UserService {
       status: true,
       data: result,
     });
+  }
+  //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  async userFollow(followUnFollowDTO, response) {
+    const { userId, following } = followUnFollowDTO;
+
+    if (userId === following) {
+      return response.json({
+        status: false,
+        message: 'You cannot follow yourself',
+      });
+    }
+
+    const user: any = await this.userModel.findById(userId);
+    const followUser: any = await this.userModel.findById(following);
+
+    if (!user || !followUser) {
+      return response.json({
+        status: false,
+        message: 'User not found',
+      });
+    }
+
+    if (user.following.includes(following)) {
+      return response.json({
+        status: false,
+        message: 'You are already following this user',
+      });
+    }
+
+    user.following.push(following);
+    followUser.followers.push(userId);
+
+    await user.save();
+    await followUser.save();
+    return response.json({
+      status: true,
+      message: user,
+    });
+    // const { userId, following } = followUnFollowDTO;
+
+    // console.log(userId, following);
+    // const user: any = await this.userModel.findById(userId);
+    // const followUser: any = await this.userModel.findById(following);
+
+    // if (!user || !followUser) {
+    //   return response.json({
+    //     status: false,
+    //     message: 'User not found',
+    //   });
+    // }
+
+    // if (user.following.includes(following)) {
+    //   return response.json({
+    //     status: false,
+    //     message: 'You are already following this user',
+    //   });
+    // }
+
+    // user.following.push(following);
+    // followUser.followers.push(userId);
+
+    // await user.save();
+    // await followUser.save();
+
+    // return response.json({
+    //   status: true,
+    //   message: user,
+    // });
+
+    // return response user;
+  }
+  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  async userUnFollow(UnFollowDTO, response): Promise<User> {
+    // userId: string, unfollowUserId: string
+    const { userId, unFollowUserId } = UnFollowDTO;
+
+    if (userId === unFollowUserId) {
+      return response.json({
+        status: false,
+        message: 'You cannot unfollow yourself',
+      });
+      // throw new ConflictException('');
+    }
+
+    const user: any = await this.userModel.findById(userId);
+    const unFollowUser: any = await this.userModel.findById(unFollowUserId);
+
+    if (!user || !unFollowUser) {
+      return response.json({
+        status: false,
+        message: 'User not found',
+      });
+    }
+
+    if (!user.following.includes(unFollowUserId)) {
+      return response.json({
+        status: false,
+        message: 'You are not following this user',
+      });
+    }
+
+    user.following = user.following.filter(
+      (id) => id.toString() !== unFollowUserId,
+    );
+    unFollowUser.followers = unFollowUser.followers.filter(
+      (id) => id.toString() !== userId,
+    );
+
+    await user.save();
+    await unFollowUser.save();
+
+    return response.json({
+      status: true,
+      data: user,
+    });
+    // return user;
   }
 }

@@ -2,7 +2,7 @@
 // src/users/schemas/user.schema.ts
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { ObjectId, Types } from 'mongoose';
 
 export type UserDocument = User & Document;
 
@@ -37,14 +37,14 @@ export class User {
   @Prop()
   image: string;
 
-  @Prop({ default: [] })
-  followers: string[]; // Array of User IDs
+  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
+  followers: Types.ObjectId[]; // Array of User IDs
 
-  @Prop({ default: [] })
-  following: string[]; // Array of User IDs
+  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
+  following: Types.ObjectId[]; // Array of User IDs
 
-  @Prop({ default: [] })
-  posts: string[]; // Array of Post IDs
+  @Prop({ type: [Types.ObjectId], ref: 'Post', default: [] })
+  posts: Types.ObjectId[]; // Array of Post IDs
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

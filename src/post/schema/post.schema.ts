@@ -9,7 +9,7 @@ import mongoose, { ObjectId, Types } from 'mongoose';
   })
 export class Post {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false })
-  userId: ObjectId; // ID of the user who created the post
+  userId: Types.ObjectId[];; // ID of the user who created the post
 
   @Prop({ required: true })
   content: string; // Content of the post

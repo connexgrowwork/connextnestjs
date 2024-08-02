@@ -1,20 +1,32 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+/* eslint-disable prettier/prettier */
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Response,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CommentService } from './comment.service';
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { CommentListDto, CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('comment')
+@ApiTags('Comment')
+@Controller()
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
-  @Post()
-  create(@Body() createCommentDto: CreateCommentDto) {
-    return this.commentService.create(createCommentDto);
+  @Post('add-comment')
+  create(@Body() createCommentDto: CreateCommentDto, @Response() response) {
+    return this.commentService.addComment(createCommentDto, response);
   }
 
-  @Get()
-  findAll() {
-    return this.commentService.findAll();
+  @Post('comment-list')
+  findAll(@Body() commentListDto: CommentListDto, @Response() response) {
+    return this.commentService.findAll(commentListDto,response);
   }
 
   @Get(':id')

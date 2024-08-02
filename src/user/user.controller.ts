@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/adjacent-overload-signatures */
 /* eslint-disable prettier/prettier */
 import {
   Controller,
@@ -13,7 +14,14 @@ import {
   UploadedFiles,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, LoginUserDto, ProfileDto, SocialSignupLoginDto } from './dto/create-user.dto';
+import {
+  CreateUserDto,
+  FollowDTO,
+  LoginUserDto,
+  ProfileDto,
+  SocialSignupLoginDto,
+  UnFollowDTO,
+} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
@@ -29,16 +37,19 @@ export class UserController {
   create(@Body() createUserDto: CreateUserDto, @Response() response) {
     return this.userService.create(createUserDto, response);
   }
-// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   @Post('login')
   loginFun(@Body() loginUserDto: LoginUserDto, @Response() response) {
     return this.userService.loginFun(loginUserDto, response);
   }
 
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-  
+
   @Post('social-login-signup')
-  socialLoginSignup(@Body() socialLoginDto: SocialSignupLoginDto, @Response() response) {
+  socialLoginSignup(
+    @Body() socialLoginDto: SocialSignupLoginDto,
+    @Response() response,
+  ) {
     return this.userService.socialLoginSignup(socialLoginDto, response);
   }
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -58,11 +69,28 @@ export class UserController {
   ) {
     return this.userService.profileUpdate(userId, profileDto, files, response);
   }
- 
-  //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+  //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   @Get('get-user-data-by-id/:userId')
   getById(@Param('userId') userId: string, @Response() response) {
     return this.userService.getById(userId, response);
+  }
+  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+  @Post('follow-user')
+  userFollow(
+    @Body() followUnFollowDTO: FollowDTO,
+    @Response() response,
+  ) {
+    return this.userService.userFollow(followUnFollowDTO, response);
+  }
+  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+  @Post('un-follow-user')
+  userUnFollow(
+    @Body() unFollowDTO: UnFollowDTO,
+    @Response() response,
+  ) {
+    return this.userService.userUnFollow(unFollowDTO, response);
   }
 }
