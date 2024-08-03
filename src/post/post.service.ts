@@ -27,6 +27,9 @@ export class PostService {
 
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async create(createPostDto: CreatePostDto, file, response) {
+    console.log('process.env.AWS_REGION', process.env.AWS_REGION);
+    console.log('process.env.BucketName', process.env.BucketName);
+    console.log('process.env', process.env);
     try {
       const findUser = await this.userModel.findOne({
         _id: createPostDto.userId,
