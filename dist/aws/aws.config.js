@@ -16,10 +16,10 @@ let AwsConfigService = class AwsConfigService {
     constructor() { }
     getS3Client() {
         return new client_s3_1.S3Client({
-            region: 'eu-north-1',
+            region: process.env.AWS_REGION,
             credentials: {
-                accessKeyId: 'AKIAQFC27PJOGYUHBMUT',
-                secretAccessKey: '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',
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
             }
         });
     }

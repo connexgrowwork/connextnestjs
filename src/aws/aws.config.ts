@@ -8,12 +8,17 @@ export class AwsConfigService {
 
     getS3Client(): S3Client {
         return new S3Client({
-            region: 'eu-north-1',
+            region: process.env.AWS_REGION,
             credentials: {
-                accessKeyId: 'AKIAQFC27PJOGYUHBMUT',
-                secretAccessKey: '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',
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
             }
         });
     }
     
+  //   AWS.config.update({
+  //     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  //     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  //     region: process.env.AWS_REGION,
+  //   });
 }
