@@ -43,20 +43,22 @@ export class PostService {
       }
 
       const s3 = new S3Client({
-        region: process.env.AWS_REGION,
+        region: 'eu-north-1',
+        // region: process.env.AWS_REGION,
         credentials: fromEnv(),
       });
 
       if (file.length) {
         const uploadParams = {
-          Bucket: process.env.BucketName, // Ensure this is set correctly in your environment variables
+          Bucket: 'connexbucket', // Ensure this is set correctly in your environment variables
+          // Bucket: process.env.BucketName, // Ensure this is set correctly in your environment variables
           Key: `post/${Date.now()}_${file[0].originalname}`,
           Body: file[0].buffer,
           ContentType: file[0].mimetype,
         };
         const command = new PutObjectCommand(uploadParams);
         const data = await s3.send(command);
-        const imageUrl = `https://${process.env.BucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
+        const imageUrl = `https://${'connexbucket'}.s3.${'eu-north-1'}.amazonaws.com/${uploadParams.Key}`;
 
         const savepost = await this.postModel.create({
           content: createPostDto?.content || '',

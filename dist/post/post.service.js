@@ -46,19 +46,19 @@ let PostService = class PostService {
                 });
             }
             const s3 = new S3Client({
-                region: process.env.AWS_REGION,
+                region: 'eu-north-1',
                 credentials: (0, credential_provider_env_1.fromEnv)(),
             });
             if (file.length) {
                 const uploadParams = {
-                    Bucket: process.env.BucketName,
+                    Bucket: 'connexbucket',
                     Key: `post/${Date.now()}_${file[0].originalname}`,
                     Body: file[0].buffer,
                     ContentType: file[0].mimetype,
                 };
                 const command = new PutObjectCommand(uploadParams);
                 const data = await s3.send(command);
-                const imageUrl = `https://${process.env.BucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
+                const imageUrl = `https://${'connexbucket'}.s3.${'eu-north-1'}.amazonaws.com/${uploadParams.Key}`;
                 const savepost = await this.postModel.create({
                     content: createPostDto?.content || '',
                     imageUrl: imageUrl,
