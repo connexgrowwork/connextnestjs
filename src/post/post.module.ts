@@ -7,16 +7,19 @@ import { UserSchema } from 'src/user/schema/user.schema';
 import { PostSchema } from './schema/post.schema';
 import { CommentSchema } from 'src/comment/schema/comment.schema';
 import { NotificationSchema } from 'src/user/schema/notification.schema';
+import { AwsConfigService } from 'src/aws/aws.config';
 
 @Module({
-  imports: [MongooseModule.forFeature([
-    { name: 'User', schema: UserSchema },
-    { name: 'Post', schema: PostSchema },
-    { name: 'Comment', schema: CommentSchema },
-    { name: 'Notification', schema: NotificationSchema },
-  ])],
+  imports: [
+    MongooseModule.forFeature([
+      { name: 'User', schema: UserSchema },
+      { name: 'Post', schema: PostSchema },
+      { name: 'Comment', schema: CommentSchema },
+      { name: 'Notification', schema: NotificationSchema },
+    ]),
+  ],
 
   controllers: [PostController],
-  providers: [PostService],
+  providers: [PostService, AwsConfigService],
 })
 export class PostModule {}

@@ -9,27 +9,43 @@ import { User } from 'src/user/schema/user.schema';
 import { Post } from './schema/post.schema';
 import { Notification } from 'src/user/schema/notification.schema';
 import { AllMESSAGES } from 'src/utils/constants';
-const AWS = require('aws-sdk');
 require('dotenv').config();
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-// const { fromEnv } = require('@aws-sdk/credential-provider-env');
-import { fromEnv } from '@aws-sdk/credential-provider-env';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 
+import { fromEnv } from '@aws-sdk/credential-provider-env';
+import { AwsConfigService } from '../aws/aws.config';
+function generateRandomSixDigitNumber() {
+  const randomNumber = Math.floor(100000 + Math.random() * 900000).toString();
+  return randomNumber;
+}
 const someName = 'connexbucket';
 @Injectable()
 export class PostService {
+  [x: string]: any;
   constructor(
+    private readonly awsConfigService: AwsConfigService,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Post.name) private postModel: Model<Post>,
     @InjectModel(Notification.name)
     private notificationModel: Model<Notification>,
-  ) {}
+  ) {
+    this.s3 = awsConfigService.getS3Client();
+  }
 
+  async uploadToS3(
+    bucketName: string,
+    key: string,
+    data: Buffer,
+  ): Promise<void> {
+    const command = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: data,
+    });
+    await this.s3.send(command);
+  }
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async create(createPostDto: CreatePostDto, file, response) {
-    console.log('process.env.AWS_REGION', process.env.AWS_REGION);
-    console.log('process.env.BucketName', process.env.BucketName);
-    console.log('process.env', process.env);
     try {
       const findUser = await this.userModel.findOne({
         _id: createPostDto.userId,
@@ -41,24 +57,17 @@ export class PostService {
           message: 'User not found',
         });
       }
-
-      const s3 = new S3Client({
-        region: 'eu-north-1',
-        // region: process.env.AWS_REGION,
-        credentials: fromEnv(),
-      });
-
+      
       if (file.length) {
-        const uploadParams = {
-          Bucket: 'connexbucket', // Ensure this is set correctly in your environment variables
-          // Bucket: process.env.BucketName, // Ensure this is set correctly in your environment variables
-          Key: `post/${Date.now()}_${file[0].originalname}`,
-          Body: file[0].buffer,
-          ContentType: file[0].mimetype,
-        };
-        const command = new PutObjectCommand(uploadParams);
-        const data = await s3.send(command);
-        const imageUrl = `https://${'connexbucket'}.s3.${'eu-north-1'}.amazonaws.com/${uploadParams.Key}`;
+        const randomSixDigitNumber = generateRandomSixDigitNumber();
+        const uniqueSuffix = new Date().getTime() + randomSixDigitNumber;
+        const fileExtension = file[0].originalname.split('.').pop();
+        const filename = `${uniqueSuffix}.${fileExtension}`;
+        const imageBuffer = file[0].buffer;
+
+        const imageUrl: any = `${file[0].fieldname}/${filename}`;
+
+        await this.uploadToS3('connexbucket', imageUrl, imageBuffer); //invoicePath
 
         const savepost = await this.postModel.create({
           content: createPostDto?.content || '',

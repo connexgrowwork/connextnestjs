@@ -15,19 +15,22 @@ const user_schema_1 = require("../user/schema/user.schema");
 const post_schema_1 = require("./schema/post.schema");
 const comment_schema_1 = require("../comment/schema/comment.schema");
 const notification_schema_1 = require("../user/schema/notification.schema");
+const aws_config_1 = require("../aws/aws.config");
 let PostModule = class PostModule {
 };
 exports.PostModule = PostModule;
 exports.PostModule = PostModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
                 { name: 'User', schema: user_schema_1.UserSchema },
                 { name: 'Post', schema: post_schema_1.PostSchema },
                 { name: 'Comment', schema: comment_schema_1.CommentSchema },
                 { name: 'Notification', schema: notification_schema_1.NotificationSchema },
-            ])],
+            ]),
+        ],
         controllers: [post_controller_1.PostController],
-        providers: [post_service_1.PostService],
+        providers: [post_service_1.PostService, aws_config_1.AwsConfigService],
     })
 ], PostModule);
 //# sourceMappingURL=post.module.js.map

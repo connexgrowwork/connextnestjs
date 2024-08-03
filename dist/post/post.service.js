@@ -20,21 +20,31 @@ const user_schema_1 = require("../user/schema/user.schema");
 const post_schema_1 = require("./schema/post.schema");
 const notification_schema_1 = require("../user/schema/notification.schema");
 const constants_1 = require("../utils/constants");
-const AWS = require('aws-sdk');
 require('dotenv').config();
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const credential_provider_env_1 = require("@aws-sdk/credential-provider-env");
+const client_s3_1 = require("@aws-sdk/client-s3");
+const aws_config_1 = require("../aws/aws.config");
+function generateRandomSixDigitNumber() {
+    const randomNumber = Math.floor(100000 + Math.random() * 900000).toString();
+    return randomNumber;
+}
 const someName = 'connexbucket';
 let PostService = class PostService {
-    constructor(userModel, postModel, notificationModel) {
+    constructor(awsConfigService, userModel, postModel, notificationModel) {
+        this.awsConfigService = awsConfigService;
         this.userModel = userModel;
         this.postModel = postModel;
         this.notificationModel = notificationModel;
+        this.s3 = awsConfigService.getS3Client();
+    }
+    async uploadToS3(bucketName, key, data) {
+        const command = new client_s3_1.PutObjectCommand({
+            Bucket: bucketName,
+            Key: key,
+            Body: data,
+        });
+        await this.s3.send(command);
     }
     async create(createPostDto, file, response) {
-        console.log('process.env.AWS_REGION', process.env.AWS_REGION);
-        console.log('process.env.BucketName', process.env.BucketName);
-        console.log('process.env', process.env);
         try {
             const findUser = await this.userModel.findOne({
                 _id: createPostDto.userId,
@@ -45,20 +55,14 @@ let PostService = class PostService {
                     message: 'User not found',
                 });
             }
-            const s3 = new S3Client({
-                region: 'eu-north-1',
-                credentials: (0, credential_provider_env_1.fromEnv)(),
-            });
             if (file.length) {
-                const uploadParams = {
-                    Bucket: 'connexbucket',
-                    Key: `post/${Date.now()}_${file[0].originalname}`,
-                    Body: file[0].buffer,
-                    ContentType: file[0].mimetype,
-                };
-                const command = new PutObjectCommand(uploadParams);
-                const data = await s3.send(command);
-                const imageUrl = `https://${'connexbucket'}.s3.${'eu-north-1'}.amazonaws.com/${uploadParams.Key}`;
+                const randomSixDigitNumber = generateRandomSixDigitNumber();
+                const uniqueSuffix = new Date().getTime() + randomSixDigitNumber;
+                const fileExtension = file[0].originalname.split('.').pop();
+                const filename = `${uniqueSuffix}.${fileExtension}`;
+                const imageBuffer = file[0].buffer;
+                const imageUrl = `${file[0].fieldname}/${filename}`;
+                await this.uploadToS3('connexbucket', imageUrl, imageBuffer);
                 const savepost = await this.postModel.create({
                     content: createPostDto?.content || '',
                     imageUrl: imageUrl,
@@ -187,10 +191,11 @@ let PostService = class PostService {
 exports.PostService = PostService;
 exports.PostService = PostService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
-    __param(1, (0, mongoose_1.InjectModel)(post_schema_1.Post.name)),
-    __param(2, (0, mongoose_1.InjectModel)(notification_schema_1.Notification.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model,
+    __param(1, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    __param(2, (0, mongoose_1.InjectModel)(post_schema_1.Post.name)),
+    __param(3, (0, mongoose_1.InjectModel)(notification_schema_1.Notification.name)),
+    __metadata("design:paramtypes", [aws_config_1.AwsConfigService,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model])
 ], PostService);
