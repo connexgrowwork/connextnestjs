@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -10,8 +10,12 @@ import { Post } from './schema/post.schema';
 import { Notification } from 'src/user/schema/notification.schema';
 import { AllMESSAGES } from 'src/utils/constants';
 const AWS = require('aws-sdk');
+require('dotenv').config();
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+// const { fromEnv } = require('@aws-sdk/credential-provider-env');
+import { fromEnv } from '@aws-sdk/credential-provider-env';
 
-const someName = "connexbucket"
+const someName = 'connexbucket';
 @Injectable()
 export class PostService {
   constructor(
@@ -23,68 +27,143 @@ export class PostService {
 
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async create(createPostDto: CreatePostDto, file, response) {
-    const findUser = await this.userModel.findOne({
-      _id: createPostDto.userId,
-    });
+    try {
+      const findUser = await this.userModel.findOne({
+        _id: createPostDto.userId,
+      });
 
-    if (!findUser) {
-      return response.json({
+      if (!findUser) {
+        return response.json({
+          status: false,
+          message: 'User not found',
+        });
+      }
+
+      const s3 = new S3Client({
+        region: process.env.AWS_REGION,
+        credentials: fromEnv(),
+      });
+
+      if (file.length) {
+        const uploadParams = {
+          Bucket: process.env.BucketName, // Ensure this is set correctly in your environment variables
+          Key: `post/${Date.now()}_${file[0].originalname}`,
+          Body: file[0].buffer,
+          ContentType: file[0].mimetype,
+        };
+        const command = new PutObjectCommand(uploadParams);
+        const data = await s3.send(command);
+        const imageUrl = `https://${process.env.BucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
+
+        const savepost = await this.postModel.create({
+          content: createPostDto?.content || '',
+          imageUrl: imageUrl,
+          userId: createPostDto.userId,
+        });
+
+        return response.json({
+          status: true,
+          message: 'Post created successfully',
+        });
+      } else {
+        const savepost = await this.postModel.create({
+          content: createPostDto?.content || '',
+          userId: createPostDto.userId,
+          imageUrl: '',
+        });
+
+        return response.json({
+          status: true,
+          message: 'Post created successfully',
+        });
+      }
+    } catch (error) {
+      console.error('Error creating post:', error);
+      return response.status(500).json({
         status: false,
-        message: 'User not found',
-      });
-    }
-
-    AWS.config.update({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: process.env.AWS_REGION,
-    });
-
-    const s3 = new AWS.S3();
-    console.log('Ssssssss', file);
-    // const bucketName = process.env.BucketName;
-    // if (!bucketName) {
-    //   console.error('Bucket name is not defined in environment variables');
-    //   return response.json({
-    //     status: false,
-    //     message: 'Internal server error',
-    //   });
-    // }
-    // if (createPostDto.content == '') {
-
-    // }
-    if (file.length) {
-      const uploadParams = {
-        Bucket: someName,
-        Key: `post/${Date.now()}_${file[0].originalname}`,
-        Body: file[0].buffer,
-        // ACL: 'public-read', // Adjust based on your requirements
-        ContentType: file[0].mimetype,
-      };
-      const data = await s3.upload(uploadParams).promise();
-
-      const savepost = await this.postModel.create({
-        content: createPostDto?.content || '',
-        imageUrl: data.Location,
-        userId: createPostDto.userId,
-      });
-
-      return response.json({
-        status: true,
-        message: 'Post created successfully',
-      });
-    } else {
-      const savepost = await this.postModel.create({
-        content: createPostDto?.content || '',
-        userId: createPostDto.userId,
-      });
-
-      return response.json({
-        status: true,
-        message: 'Post created successfully',
+        message: 'Internal server error',
       });
     }
   }
+  // async create(createPostDto: CreatePostDto, file, response) {
+  //   const findUser = await this.userModel.findOne({
+  //     _id: createPostDto.userId,
+  //   });
+
+  //   if (!findUser) {
+  //     return response.json({
+  //       status: false,
+  //       message: 'User not found',
+  //     });
+  //   }
+
+  //   AWS.config.update({
+  //     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  //     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  //     region: process.env.AWS_REGION,
+  //   });
+
+  //   // const s3 = new AWS.S3();
+
+  //   const s3 = new S3Client({
+  //     region: process.env.AWS_REGION,
+  //     credentials: fromEnv(),
+  //     endpoint: `https://s3.${process.env.AWS_REGION}.amazonaws.com`,
+  //   });
+  //   console.log('Ssssssss', file);
+  //   // const bucketName = process.env.BucketName;
+  //   // if (!bucketName) {
+  //   //   console.error('Bucket name is not defined in environment variables');
+  //   //   return response.json({
+  //   //     status: false,
+  //   //     message: 'Internal server error',
+  //   //   });
+  //   // }
+  //   // if (createPostDto.content == '') {
+
+  //   // }
+  //   if (file.length) {
+  //     // const uploadParams = {
+  //     //   Bucket: someName,
+  //     //   Key: `post/${Date.now()}_${file[0].originalname}`,
+  //     //   Body: file[0].buffer,
+  //     //   // ACL: 'public-read', // Adjust based on your requirements
+  //     //   ContentType: file[0].mimetype,
+  //     // };
+  //     const uploadParams = {
+  //       Bucket: someName,
+  //       Key: `post/${Date.now()}_${file[0].originalname}`,
+  //       Body: file[0].buffer,
+  //       ContentType: file[0].mimetype,
+  //     };
+  //     // const data = await s3.upload(uploadParams).promise();
+  //     const command = new PutObjectCommand(uploadParams);
+  //     const data = await s3.send(command);
+  //     const imageUrl = `https://${someName}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
+
+  //     const savepost = await this.postModel.create({
+  //       content: createPostDto?.content || '',
+  //       imageUrl: imageUrl,
+  //       userId: createPostDto.userId,
+  //     });
+
+  //     return response.json({
+  //       status: true,
+  //       message: 'Post created successfully',
+  //     });
+  //   } else {
+  //     const savepost = await this.postModel.create({
+  //       content: createPostDto?.content || '',
+  //       userId: createPostDto.userId,
+  //       imageUrl: '',
+  //     });
+
+  //     return response.json({
+  //       status: true,
+  //       message: 'Post created successfully',
+  //     });
+  //   }
+  // }
 
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async getAllPostList(userId, postListDto, response) {

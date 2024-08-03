@@ -21,7 +21,10 @@ const post_schema_1 = require("./schema/post.schema");
 const notification_schema_1 = require("../user/schema/notification.schema");
 const constants_1 = require("../utils/constants");
 const AWS = require('aws-sdk');
-const someName = "connexbucket";
+require('dotenv').config();
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const credential_provider_env_1 = require("@aws-sdk/credential-provider-env");
+const someName = 'connexbucket';
 let PostService = class PostService {
     constructor(userModel, postModel, notificationModel) {
         this.userModel = userModel;
@@ -29,48 +32,57 @@ let PostService = class PostService {
         this.notificationModel = notificationModel;
     }
     async create(createPostDto, file, response) {
-        const findUser = await this.userModel.findOne({
-            _id: createPostDto.userId,
-        });
-        if (!findUser) {
-            return response.json({
+        try {
+            const findUser = await this.userModel.findOne({
+                _id: createPostDto.userId,
+            });
+            if (!findUser) {
+                return response.json({
+                    status: false,
+                    message: 'User not found',
+                });
+            }
+            const s3 = new S3Client({
+                region: process.env.AWS_REGION,
+                credentials: (0, credential_provider_env_1.fromEnv)(),
+            });
+            if (file.length) {
+                const uploadParams = {
+                    Bucket: process.env.BucketName,
+                    Key: `post/${Date.now()}_${file[0].originalname}`,
+                    Body: file[0].buffer,
+                    ContentType: file[0].mimetype,
+                };
+                const command = new PutObjectCommand(uploadParams);
+                const data = await s3.send(command);
+                const imageUrl = `https://${process.env.BucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
+                const savepost = await this.postModel.create({
+                    content: createPostDto?.content || '',
+                    imageUrl: imageUrl,
+                    userId: createPostDto.userId,
+                });
+                return response.json({
+                    status: true,
+                    message: 'Post created successfully',
+                });
+            }
+            else {
+                const savepost = await this.postModel.create({
+                    content: createPostDto?.content || '',
+                    userId: createPostDto.userId,
+                    imageUrl: '',
+                });
+                return response.json({
+                    status: true,
+                    message: 'Post created successfully',
+                });
+            }
+        }
+        catch (error) {
+            console.error('Error creating post:', error);
+            return response.status(500).json({
                 status: false,
-                message: 'User not found',
-            });
-        }
-        AWS.config.update({
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-            region: process.env.AWS_REGION,
-        });
-        const s3 = new AWS.S3();
-        console.log('Ssssssss', file);
-        if (file.length) {
-            const uploadParams = {
-                Bucket: someName,
-                Key: `post/${Date.now()}_${file[0].originalname}`,
-                Body: file[0].buffer,
-                ContentType: file[0].mimetype,
-            };
-            const data = await s3.upload(uploadParams).promise();
-            const savepost = await this.postModel.create({
-                content: createPostDto?.content || '',
-                imageUrl: data.Location,
-                userId: createPostDto.userId,
-            });
-            return response.json({
-                status: true,
-                message: 'Post created successfully',
-            });
-        }
-        else {
-            const savepost = await this.postModel.create({
-                content: createPostDto?.content || '',
-                userId: createPostDto.userId,
-            });
-            return response.json({
-                status: true,
-                message: 'Post created successfully',
+                message: 'Internal server error',
             });
         }
     }
