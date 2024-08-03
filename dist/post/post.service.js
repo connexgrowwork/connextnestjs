@@ -21,6 +21,7 @@ const post_schema_1 = require("./schema/post.schema");
 const notification_schema_1 = require("../user/schema/notification.schema");
 const constants_1 = require("../utils/constants");
 const AWS = require('aws-sdk');
+const someName = "connexbucket";
 let PostService = class PostService {
     constructor(userModel, postModel, notificationModel) {
         this.userModel = userModel;
@@ -44,17 +45,9 @@ let PostService = class PostService {
         });
         const s3 = new AWS.S3();
         console.log('Ssssssss', file);
-        const bucketName = process.env.BucketName;
-        if (!bucketName) {
-            console.error('Bucket name is not defined in environment variables');
-            return response.json({
-                status: false,
-                message: 'Internal server error',
-            });
-        }
         if (file.length) {
             const uploadParams = {
-                Bucket: bucketName,
+                Bucket: someName,
                 Key: `post/${Date.now()}_${file[0].originalname}`,
                 Body: file[0].buffer,
                 ContentType: file[0].mimetype,

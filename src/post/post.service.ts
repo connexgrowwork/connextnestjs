@@ -11,6 +11,7 @@ import { Notification } from 'src/user/schema/notification.schema';
 import { AllMESSAGES } from 'src/utils/constants';
 const AWS = require('aws-sdk');
 
+const someName = "connexbucket"
 @Injectable()
 export class PostService {
   constructor(
@@ -41,20 +42,20 @@ export class PostService {
 
     const s3 = new AWS.S3();
     console.log('Ssssssss', file);
-    const bucketName = process.env.BucketName;
-    if (!bucketName) {
-      console.error('Bucket name is not defined in environment variables');
-      return response.json({
-        status: false,
-        message: 'Internal server error',
-      });
-    }
+    // const bucketName = process.env.BucketName;
+    // if (!bucketName) {
+    //   console.error('Bucket name is not defined in environment variables');
+    //   return response.json({
+    //     status: false,
+    //     message: 'Internal server error',
+    //   });
+    // }
     // if (createPostDto.content == '') {
 
     // }
     if (file.length) {
       const uploadParams = {
-        Bucket: bucketName,
+        Bucket: someName,
         Key: `post/${Date.now()}_${file[0].originalname}`,
         Body: file[0].buffer,
         // ACL: 'public-read', // Adjust based on your requirements
