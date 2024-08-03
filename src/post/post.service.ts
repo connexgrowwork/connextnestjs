@@ -4,9 +4,11 @@ import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model ,Types} from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User } from 'src/user/schema/user.schema';
 import { Post } from './schema/post.schema';
+import { Notification } from 'src/user/schema/notification.schema';
+import { AllMESSAGES } from 'src/utils/constants';
 const AWS = require('aws-sdk');
 
 @Injectable()
@@ -14,6 +16,8 @@ export class PostService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Post.name) private postModel: Model<Post>,
+    @InjectModel(Notification.name)
+    private notificationModel: Model<Notification>,
   ) {}
 
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -76,22 +80,21 @@ export class PostService {
 
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async getAllPostList(userId, postListDto, response) {
-
     console.log(userId);
     const limitNum = parseInt(postListDto.limit, 10) || 10;
     const page = postListDto.offset || 1;
 
     const offsetNum = (page - 1) * postListDto.limit || 0;
 
-    
-
-    const find = await this.postModel.find({ userId: new Types.ObjectId( userId) })
+    const find = await this.postModel.find({
+      userId: new Types.ObjectId(userId),
+    });
     // Aggregate query to get posts with additional details
     const posts = await this.postModel.aggregate([
-      { $match: { userId: new Types.ObjectId( userId) } },
+      { $match: { userId: new Types.ObjectId(userId) } },
       {
         $lookup: {
-          from: 'users', 
+          from: 'users',
           localField: 'userId',
           foreignField: '_id',
           as: 'user',
@@ -100,7 +103,7 @@ export class PostService {
       { $unwind: '$user' },
       {
         $lookup: {
-          from: 'comments', 
+          from: 'comments',
           localField: '_id',
           foreignField: 'postId',
           as: 'comments',
@@ -217,8 +220,48 @@ export class PostService {
     console.log('postspostspostsposts ', posts);
     return response.json({
       status: true,
-      data: posts, 
+      data: posts,
     });
     return posts;
+  }
+
+  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+  async likeUnlikePost(likeDto, response) {
+    const { isLike, PostId, userId } = likeDto;
+
+    const post = await this.postModel.findById(PostId);
+    if (!post) {
+      return response.json({
+        status: false,
+        message: 'Post not found',
+      });
+    }
+
+    const index = post.likes.indexOf(userId as unknown as Types.ObjectId);
+
+    if (isLike) {
+      if (index === -1) {
+        post.likes.push(userId as unknown as Types.ObjectId);
+      }
+
+      const saveNotification = await this.notificationModel.create({
+        text: AllMESSAGES.LIKE,
+        userId: userId,
+      });
+    } else {
+      if (index !== -1) {
+        post.likes.splice(index, 1);
+      }
+    }
+
+    await post.save();
+
+    return response.json({
+      status: true,
+      data: post,
+    });
+    return post;
+    // }
   }
 }

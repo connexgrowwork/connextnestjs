@@ -6,12 +6,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from 'src/user/schema/user.schema';
 import { PostSchema } from './schema/post.schema';
 import { CommentSchema } from 'src/comment/schema/comment.schema';
+import { NotificationSchema } from 'src/user/schema/notification.schema';
 
 @Module({
   imports: [MongooseModule.forFeature([
     { name: 'User', schema: UserSchema },
     { name: 'Post', schema: PostSchema },
     { name: 'Comment', schema: CommentSchema },
+    { name: 'Notification', schema: NotificationSchema },
   ])],
 
   controllers: [PostController],

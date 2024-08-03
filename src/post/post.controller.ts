@@ -12,7 +12,7 @@ import {
   UploadedFiles,
 } from '@nestjs/common';
 import { PostService } from './post.service';
-import { CreatePostDto, PostListDto } from './dto/create-post.dto';
+import { CreatePostDto, LikeDto, PostListDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
@@ -46,4 +46,14 @@ export class PostController {
   ) {
     return this.postService.getAllPostList(userId, postListDto, response);
   }
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+@Post('like-unlike')
+likeUnlikePost(
+  @Body() likeDto: LikeDto,
+  @Response() response,
+) {
+  return this.postService.likeUnlikePost( likeDto, response);
+} 
+
 }

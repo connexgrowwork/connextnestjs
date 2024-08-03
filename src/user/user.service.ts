@@ -11,12 +11,18 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schema/user.schema';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
+import { AllMESSAGES } from 'src/utils/constants';
+import { Notification } from './schema/notification.schema';
 const AWS = require('aws-sdk');
 // import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Notification.name)
+    private notificationModel: Model<Notification>,
+  ) {}
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   async create(createUserDto: CreateUserDto, response) {
     const { email, bio, name, socialId, designation } = createUserDto;
@@ -215,6 +221,11 @@ export class UserService {
 
     user.following.push(following);
     followUser.followers.push(userId);
+
+    const saveNotification = await this.notificationModel.create({
+      text: AllMESSAGES.FOLLOW,
+      userId: userId,
+    });
 
     await user.save();
     await followUser.save();

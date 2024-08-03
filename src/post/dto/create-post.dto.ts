@@ -27,3 +27,17 @@ export class PostListDto {
     @IsOptional()
     search: string;
   }
+
+  export class LikeDto {
+    @ApiProperty()
+    @IsNotEmpty()
+    isLike: number;
+  
+    @ApiProperty()
+    @IsNotEmpty()
+    PostId: string;
+  
+    @ApiProperty()
+    @IsNotEmpty()
+    userId: string;
+  }

@@ -20,3 +20,16 @@ export class CommentListDto {
   @IsNotEmpty()
   postId: string;
 }
+export class NotificationListDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  userId: string;
+
+  @ApiProperty()
+  @IsOptional()
+  limit: number;
+
+  @ApiProperty()
+  @IsOptional()
+  offset: number;
+}
