@@ -33,15 +33,15 @@ import { extname } from 'path';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('sign-up')
+  @Post('registration')
   create(@Body() createUserDto: CreateUserDto, @Response() response) {
     return this.userService.create(createUserDto, response);
   }
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-  @Post('login')
-  loginFun(@Body() loginUserDto: LoginUserDto, @Response() response) {
-    return this.userService.loginFun(loginUserDto, response);
-  }
+  // @Post('login')
+  // loginFun(@Body() loginUserDto: LoginUserDto, @Response() response) {
+  //   return this.userService.loginFun(loginUserDto, response);
+  // }
 
   // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -70,7 +70,7 @@ export class UserController {
     return this.userService.profileUpdate(userId, profileDto, files, response);
   }
 
-  //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   @Get('get-user-data-by-id/:userId')
   getById(@Param('userId') userId: string, @Response() response) {
     return this.userService.getById(userId, response);

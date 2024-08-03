@@ -22,6 +22,9 @@ export class User {
   @Prop()
   socialId: string;
 
+  @Prop()
+  social_url: string;
+
   @Prop({ default: 0 })
   isNew: number;
 

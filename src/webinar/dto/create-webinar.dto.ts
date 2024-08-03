@@ -2,42 +2,30 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsOptional } from 'class-validator';
 
-export class CreatePostDto {
+export class CreateWebinarDto {
   @ApiProperty()
   @IsOptional()
-  content: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  userId: string;
+  name: string;
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })
   image: Express.Multer.File;
-}
-export class PostListDto {
-  @ApiProperty()
-  @IsOptional()
-  limit: string;
+//   @ApiProperty()
+//   @IsOptional()
+//   image: string;
 
   @ApiProperty()
   @IsOptional()
-  offset: string;
+  description: string;
 
   @ApiProperty()
   @IsOptional()
-  search: string;
-}
-
-export class LikeDto {
-  @ApiProperty()
-  @IsNotEmpty()
-  isLike: number;
+  startDate: string;
 
   @ApiProperty()
-  @IsNotEmpty()
-  PostId: string;
+  @IsOptional()
+  endDate: string;
 
   @ApiProperty()
-  @IsNotEmpty()
-  userId: string;
+  @IsOptional()
+  paymentUrl: string;
 }

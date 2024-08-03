@@ -13,6 +13,10 @@ export class CreateUserDto {
 
   @ApiProperty()
   @IsOptional()
+  social_url: string;
+
+  @ApiProperty()
+  @IsOptional()
   designation: string;
 
   @ApiProperty()
@@ -44,6 +48,14 @@ export class ProfileDto {
   @ApiProperty()
   @IsOptional()
   bio: string;
+
+  @ApiProperty()
+  @IsOptional()
+  designation: string;
+
+  @ApiProperty()
+  @IsOptional()
+  socialUrl: string;
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })
   image: Express.Multer.File;

@@ -6,6 +6,7 @@ import { UserModule } from './user/user.module';
 import { PostModule } from './post/post.module';
 import { CommentModule } from './comment/comment.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { WebinarModule } from './webinar/webinar.module';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -22,6 +23,7 @@ dotenv.config();
     UserModule,
     PostModule,
     CommentModule,
+    WebinarModule,
   ],
   controllers: [AppController],
   providers: [AppService],
