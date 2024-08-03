@@ -66,6 +66,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], PostController.prototype, "likeUnlikePost", null);
 exports.PostController = PostController = __decorate([
+    (0, swagger_1.ApiTags)('Post'),
     (0, common_1.Controller)('post'),
     __metadata("design:paramtypes", [post_service_1.PostService])
 ], PostController);
